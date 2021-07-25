@@ -69,6 +69,21 @@ print('landscape created')
 # EditorCamera()
 Sky()#color=color.cyan)
 
+# dec_tree_model = load_model('Deciduous_Tree.obj')
+# dec_tree_model.generate_normals()
+# print(len(dec_tree_model.uvs), dec_tree_model.uvs[:10])
+# tree = Entity(model=dec_tree_model, position=(15, noise[15, 15], 15), texture='Deciduous_Tree.png',
+#               scale=3, collider='mesh')
+
+tree_models = {i: load_model(f'tree{i+1}') for i in range(5)}
+n_trees = 100
+for i in range(n_trees):
+    x = random.randint(0, width-1)
+    z = random.randint(0, length-1)
+    y = noise[x, z] - .1
+    Entity(model=deepcopy(tree_models[random.randint(0, 4)]), texture='tex1.png', position=(x, y, z),
+           scale=.5, collider='mesh', rotation=(0, random.uniform(0, 360), 0))
+
 print(f'level generation took {time.time()-start_time:.2f}s, of which were {noise_time:.2f}s for noise')
 player = FirstPersonController(position=(width/2, 50, length/2))
 

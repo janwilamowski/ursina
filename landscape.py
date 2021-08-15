@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import random
 import time
 from collections import defaultdict
@@ -108,18 +110,24 @@ print(f'created landscape in {time.time()-start_time:.2f}s')
 with timer('load tree models'):
     tree_models = {i: load_model(f'tree{i+1}') for i in range(5)}
 
+def create_tree(_):
+    x = random.randint(0, width-1)
+    z = random.randint(0, length-1)
+    y = noise[x, z] - .1
+    return Entity(model=deepcopy(tree_models[random.randint(0, 4)]), texture='tex1.png', position=(x, y, z),
+           scale=.5, collider='mesh', rotation=(0, random.uniform(0, 360), 0))
+
 with timer('create trees'):
     n_trees = 100
-    for i in range(n_trees):
-        x = random.randint(0, width-1)
-        z = random.randint(0, length-1)
-        y = noise[x, z] - .1
-        Entity(model=deepcopy(tree_models[random.randint(0, 4)]), texture='tex1.png', position=(x, y, z),
-               scale=.5, collider='mesh', rotation=(0, random.uniform(0, 360), 0))
+    trees = [create_tree(i) for i in range(n_trees)]
+    # trees = ThreadPool().map(create_tree, range(n_trees), chunksize=n_trees//cpu_count())
+    print(len(trees))
 
 print(f'level generation took {time.time()-start_time:.2f}s')
-player = FirstPersonController(position=(width/2, 50, length/2))
+player = FirstPersonController(position=(width/2, 10, length/2))
 
+alpaca = Entity(model='alpaca.obj', position=(width/2+2, noise[width//2+2, length//2+2], length/2+2), texture='alpaca1.png')
+capybara = Entity(model='capybara.obj', position=(width/2-2, noise[width//2-2, length//2-2], length/2-2), scale=.5, texture='capybara1_texture.png')
 # scene.fog_color = color.rgb(200,200,200)
 # scene.fog_density = 0.05
 # AmbientLight()

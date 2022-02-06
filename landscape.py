@@ -9,6 +9,7 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 from ursina.shaders import basic_lighting_shader, lit_with_shadows_shader
 from perlin import perlin
+from animal import Animal
 from utils import timer
 
 """ TODO
@@ -17,12 +18,24 @@ from utils import timer
 """
 
 BASE = Path(__file__).resolve().parent
+selected = None
 
-def update():
-    if held_keys['left mouse down']:
-        print('click')
+def input(key):
+    global selected
+    if key =='left mouse down':
+        under_cursor = mouse.hovered_entity
+        if under_cursor:
+            print('selected', under_cursor, under_cursor.name)
+            selected = under_cursor
+            selected.shake()
     elif held_keys['1']:
         print(1)
+    elif key == 'c':
+        print(camera.forward)
+    elif key == 'delete' and selected:
+        print('del', selected)
+        selected.disable()
+        selected = None
 
 def landscape_input(self, key=None):
     print(self, key)
@@ -30,7 +43,7 @@ def landscape_input(self, key=None):
         print('click')
 
 def smoothen_landscape_normals(mesh, grid_vertices):
-    """ Custom implementation of normals smoothing that's linear with number of vertexes,
+    """ Custom implementation of normals smoothing that's linear with number of vertices,
         as opposed to the costly squared complexity of the default implementation
     """
     for x, z_vert in grid_vertices.items():
@@ -43,6 +56,7 @@ def smoothen_landscape_normals(mesh, grid_vertices):
 app = Ursina()
 level_parent = Entity(model=Mesh(vertices=[], uvs=[]), texture='brick', color=color.dark_gray,
                       shader=lit_with_shadows_shader)
+level_parent.name = 'ground'
 # level_parent.input = landscape_input
 
 width = length = 100
@@ -121,8 +135,9 @@ def create_tree(loc_idx):
     x = loc_idx // width
     z = loc_idx % width
     y = noise[x, z] - .1
-    return Entity(model=deepcopy(random.choice(tree_models)), texture='tex1.png', position=(x, y, z),
+    tree = Entity(model=deepcopy(random.choice(tree_models)), texture='tex1.png', position=(x, y, z),
                   scale=.5, collider='mesh', rotation=(0, random.uniform(0, 360), 0))
+    tree.name = f'tree{loc_idx}'
 
 with timer('create trees'):
     n_trees = 100

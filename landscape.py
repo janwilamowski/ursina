@@ -19,22 +19,55 @@ from utils import timer
 
 BASE = Path(__file__).resolve().parent
 selected = None
+selected_label = None
+prev_shader = None
+
+class Label(Text):
+    def __init__(self, parent):
+        super().__init__(text=parent.name, position=parent.screen_position, background=True)
+        self._parent = parent
+
+    def update(self):
+        # TODO: not called
+        print('updating', self)
+        self.position = self._parent.screen_position
+
+shader = Shader.load(vertex='shaders/myshader.vert', fragment='shaders/myshader.frag')
+shader.compile()
 
 def input(key):
-    global selected
+    global selected, selected_label, prev_shader
     if key =='left mouse down':
         under_cursor = mouse.hovered_entity
         if under_cursor:
-            print('selected', under_cursor, under_cursor.name)
+            # restore previously selected entity
+            if selected:
+                selected.shader = prev_shader
+
+            dist = distance(player, under_cursor)
+            print('selected', under_cursor, under_cursor.name, dist)
             selected = under_cursor
             selected.shake()
+            if selected_label:
+                destroy(selected_label)
+            selected_label = Label(under_cursor)
+            # selected_label = Text(text=under_cursor.name, background=True, position=under_cursor.screen_position)
+            # selected_label = Button(text=under_cursor.name, parent=under_cursor, background=True, position=under_cursor.position, origin=under_cursor.origin)
+            selected_label.y += .3
+            print(under_cursor.position, under_cursor.screen_position)
+            print(selected_label.position, under_cursor.position, selected_label.origin, under_cursor.origin)
+            # under_cursor.disable()
+            if hasattr(selected, '_shader'):
+                # print(selected.shader) # TODO: trees don't have a shader
+                prev_shader = selected.shader
+            selected.shader = shader
     elif held_keys['1']:
         print(1)
     elif key == 'c':
         print(camera.forward)
     elif key == 'delete' and selected:
         print('del', selected)
-        selected.disable()
+        destroy(selected)
         selected = None
 
 def landscape_input(self, key=None):
@@ -165,4 +198,5 @@ player = FirstPersonController(position=(width//2, player_y, length//2))
 # sun = DirectionalLight(y=20, rotation=(90+30,90,0))
 # sun._light.show_frustum()
 # DirectionalLight(parent=pivot, y=20, z=3, shadows=True)
+# Cursor()
 app.run()
